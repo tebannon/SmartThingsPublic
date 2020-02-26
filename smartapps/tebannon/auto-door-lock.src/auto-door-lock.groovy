@@ -94,7 +94,8 @@ def initialize()
 	subscribe(doorContact, "contact.open", doorOpenHandler)
     subscribe(motionDetector, "motion.inactive", motionInactiveHandler)
     subscribe(motionDetector, "motion.active", motionActiveHandler)
-    
+    subscribe(location, "mode", modeChangeHandler)
+     
     // Set Check Interval
     switch (checkInterval) {
     case "1 Minute":
@@ -210,11 +211,19 @@ def motionActiveHandler(evt)
     }
 }
 
+def modeChangeHandler(evt)
+{
+	log.debug "modeChangeHandler called: $evt"
+    
+    // Location mode has chenged so call checkAll
+    checkAll()
+}
 
 def checkAll()
 {
 	log.debug "checkAll called"
     
+    // Check if we need to schedule lockDoor
     if (
     	!state.lockDoorScheduled
     	&& (doorLock.latestValue("lock") == "unlocked")
