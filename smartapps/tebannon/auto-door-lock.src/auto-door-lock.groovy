@@ -99,25 +99,25 @@ def initialize()
     // Set Check Interval
     switch (checkInterval) {
     case "1 Minute":
-        runEvery1Minute(checkAll)
+        runEvery1Minute(checkAllDevices)
         break
     case "10 Minutes":
-        runEvery10Minutes(checkAll)
+        runEvery10Minutes(checkAllDevices)
         break
     case "15 Minutes":
-        runEvery15Minutes(checkAll)
+        runEvery15Minutes(checkAllDevices)
         break
     case "30 Minutes":
-        runEvery30Minutes(checkAll)
+        runEvery30Minutes(checkAllDevices)
         break
     case "1 Hour":
-        runEvery1Hour(checkAll)
+        runEvery1Hour(checkAllDevices)
         break
     case "3 Hours":
-        runEvery3Hours(checkAll)
+        runEvery3Hours(checkAllDevices)
         break
     default:
-        unschedule(checkAll)
+        unschedule(checkAllDevices)
 	}
 }
 
@@ -215,11 +215,11 @@ def modeChangeHandler(evt)
 {
 	log.debug "modeChangeHandler called: $evt"
     
-    // Location mode has chenged so call checkAll
-    checkAll()
+    // Location mode has chenged so call checkAll after a 10 second delay
+    runIn(10, checkAllDevices)
 }
 
-def checkAll()
+def checkAllDevices()
 {
 	log.debug "checkAll called"
     
