@@ -55,7 +55,7 @@ preferences
         input "motionDetector", "capability.motionSensor", title: "Select the motion sensor", required: false
     }
 
-    section( "Push notification:" ) 
+	section( "Push notification:" ) 
     {
         input "sendPushMessage", "enum", title: "Send push notification?", metadata:[values:["Yes", "No"]], required: true
     }
@@ -64,7 +64,7 @@ preferences
     {
         input "sendText", "enum", title: "Send text message notification?", metadata:[values:["Yes", "No"]], required: true
         input "phoneNumber", "phone", title: "Enter phone number:", required: false
-    }	
+    }
 }
 
 
@@ -117,7 +117,7 @@ def initialize()
         runEvery3Hours(checkAllDevices)
         break
     default:
-        unschedule(checkAllDevices)
+    	break;
 	}
 }
 
@@ -264,15 +264,15 @@ def lockDoor()
     	log.debug "Locking $doorLock..."
     	doorLock.lock()
         
-        log.debug ("Sending Push Notification...") 
     	if (sendPushMessage != "No")
         {
+	        log.debug ("Sending Push Notification...") 
         	sendPush(lockMsg)
         }
 
-		log.debug("Sending text message...")
  		if ((sendText == "Yes") && (phoneNumber != "0")) 
         {
+			log.debug("Sending text message...")
         	sendSms(phoneNumber, lockMsg)
         }
     }
