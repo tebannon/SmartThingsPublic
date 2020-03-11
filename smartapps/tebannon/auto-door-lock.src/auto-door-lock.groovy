@@ -86,10 +86,14 @@ def initialize()
     
     // Used to track if lockDoor has been scheduled 
     state.lockDoorScheduled = false
-    
+
+	// Used to track how many times the lock state is unknown
+	state.lockStateUnknownCount = 0
+
     // Setup event handlers
     subscribe(doorLock, "lock.unlocked", doorUnlockedHandler)
     subscribe(doorLock, "lock.locked", doorLockedHandler)
+    subscribe(doorLock, "lock.unknown", lockStateUnknownHandler)
     subscribe(doorContact, "contact.closed", doorClosedHandler)
 	subscribe(doorContact, "contact.open", doorOpenHandler)
     subscribe(motionDetector, "motion.inactive", motionInactiveHandler)
@@ -124,7 +128,9 @@ def initialize()
 def doorUnlockedHandler(evt)
 {
 	log.debug "doorUnlockedHandler called: $evt"
-	
+    
+    state.lockStateUnknownCount = 0
+    
     if (
     	!state.lockDoorScheduled 
     	&& !(doorContact?.latestValue("contact") == "open") 
@@ -141,6 +147,8 @@ def doorUnlockedHandler(evt)
 def doorLockedHandler(evt)
 {
 	log.debug "doorlockedHandler called: $evt"
+    
+    state.lockStateUnknownCount = 0
 	
     If (state.lockDoorScheduled)
     {
@@ -148,6 +156,30 @@ def doorLockedHandler(evt)
     	log.debug "Unschedule lockDoor for $doorLock..."
     	unschedule (lockDoor)
         state.lockDoorScheduled = false
+    }
+}
+
+def lockStateUnknownHandler(evt)
+{
+	log.debug "lockStateUnknownHandler called: $evt"
+	
+    state.lockStateUnknownCount += 1;
+    
+    If (state.lockStateUnknownCount <= 3)
+    {
+    	// Lock State unknown
+        // Check if we need to schedule lockDoor
+        if (
+            !state.lockDoorScheduled
+            && !(doorContact?.latestValue("contact") == "open")
+            && !(motionDetector?.latestValue("motion") == "active")
+           )
+        {
+            // Lock is unlocked, and door is closed, and motion is inactive, so schedule door to lock after elapsedMinutes
+            log.debug "Schedule lockDoor for $doorLock after $elapsedMinutes..."
+            runIn (elapsedMinutes * 60, lockDoor)
+            state.lockDoorScheduled = true
+        } 
     }
 }
 
@@ -226,12 +258,20 @@ def checkAllDevices()
     // Check if we need to schedule lockDoor
     if (
     	!state.lockDoorScheduled
-    	&& (doorLock.latestValue("lock") == "unlocked")
+    	&& 
+        (
+        		doorLock.latestValue("lock") == "unlocked"
+                ||
+                (
+                	doorLock.latestValue("lock") == "unknown"
+                    && state.lockStateUnknownCount <= 3
+                )
+		)
         && !(doorContact?.latestValue("contact") == "open")
         && !(motionDetector?.latestValue("motion") == "active")
        )
     {
-    	// Lock is unlocked, and door is closed, and motion is inactive, so schedule door to lock after elapsedMinutes
+    	// Lock is unlocked or unknown, and door is closed, and motion is inactive, so schedule door to lock after elapsedMinutes
         log.debug "Schedule lockDoor for $doorLock after $elapsedMinutes..."
  	    runIn (elapsedMinutes * 60, lockDoor)
        	state.lockDoorScheduled = true
