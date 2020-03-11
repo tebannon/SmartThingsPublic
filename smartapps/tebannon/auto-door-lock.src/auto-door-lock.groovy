@@ -175,7 +175,7 @@ def lockStateUnknownHandler(evt)
             && !(motionDetector?.latestValue("motion") == "active")
            )
         {
-            // Lock is unlocked, and door is closed, and motion is inactive, so schedule door to lock after elapsedMinutes
+            // Lock state is unkown, and door is closed, and motion is inactive, so schedule door to lock after elapsedMinutes
             log.debug "Schedule lockDoor for $doorLock after $elapsedMinutes..."
             runIn (elapsedMinutes * 60, lockDoor)
             state.lockDoorScheduled = true
