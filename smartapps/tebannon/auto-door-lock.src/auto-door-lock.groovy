@@ -21,7 +21,7 @@ definition(
     category: "Safety & Security",
     singleInstance : false,
     pausible: true,
-    auth: true,
+    oauth: true,
 	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Solution/doors.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Solution/doors@2x.png"
     )
