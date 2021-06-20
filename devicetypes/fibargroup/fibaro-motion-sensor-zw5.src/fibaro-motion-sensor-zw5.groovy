@@ -25,9 +25,9 @@ metadata {
 		capability "Health Check"
 		capability "Three Axis"
 
-		fingerprint mfr: "010F", prod: "0801", model: "2001"
-		fingerprint mfr: "010F", prod: "0801", model: "1001"
-		fingerprint mfr: "010F", prod: "0801"
+		fingerprint mfr: "010F", prod: "0801", model: "2001", deviceJoinName: "Fibaro Motion Sensor"
+		fingerprint mfr: "010F", prod: "0801", model: "1001", deviceJoinName: "Fibaro Motion Sensor"
+		fingerprint mfr: "010F", prod: "0801", deviceJoinName: "Fibaro Motion Sensor"
 
 	}
 
@@ -81,7 +81,15 @@ metadata {
 		details(["FGMS", "battery", "temperature", "illuminance", "motionTile", "multiStatus"])
 	}
 	preferences {
-		parameterMap().findAll { (it.num as Integer) != 54 }.each {
+		input(
+			title: "Fibaro Motion Sensor settings",
+			description: "Device's settings update is executed when device wakes up.\n" +
+					"It may take up to 2 hours (for default wake up interval). \n" +
+					"If you want immediate change, manually wake up device by clicking B-button once.",
+			type: "paragraph",
+			element: "paragraph"
+		)
+		parameterMap().each {
 			input(
 				title: "${it.num}. ${it.title}",
 				description: it.descr,
@@ -93,7 +101,7 @@ metadata {
 			input(
 				name: it.key,
 				title: null,
-				description: "Default: $descrDefVal",
+				description: "$descrDefVal",
 				type: it.type,
 				options: it.options,
 				range: (it.min != null && it.max != null) ? "${it.min}..${it.max}" : null,

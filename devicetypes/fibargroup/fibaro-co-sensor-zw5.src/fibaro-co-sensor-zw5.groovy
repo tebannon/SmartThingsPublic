@@ -14,9 +14,9 @@ metadata {
 
 		attribute "coLevel", "number"
 
-		fingerprint mfr: "010F", prod: "1201", model: "1000"
-		fingerprint mfr: "010F", prod: "1201", model: "1001"
-		fingerprint mfr: "010F", prod: "1201"
+		fingerprint mfr: "010F", prod: "1201", model: "1000", deviceJoinName: "Fibaro Carbon Monoxide Sensor"
+		fingerprint mfr: "010F", prod: "1201", model: "1001", deviceJoinName: "Fibaro Carbon Monoxide Sensor"
+		fingerprint mfr: "010F", prod: "1201", deviceJoinName: "Fibaro Carbon Monoxide Sensor"
 	}
 
 	tiles (scale: 2) {
@@ -67,7 +67,7 @@ metadata {
 	}
 
 	preferences {
-		parameterMap().findAll{(it.num as Integer) != 54}.each {
+		parameterMap().each {
 			input (
 					title: "${it.num}. ${it.title}",
 					description: it.descr,
@@ -75,10 +75,12 @@ metadata {
 					element: "paragraph"
 			)
 
+			def defVal = it.def as Integer
+			def descrDefVal = it.options ? it.options.get(defVal) : defVal
 			input (
 					name: it.key,
 					title: null,
-					description: "Default: $it.def" ,
+					description: "$descrDefVal",
 					type: it.type,
 					options: it.options,
 					range: (it.min != null && it.max != null) ? "${it.min}..${it.max}" : null,
@@ -364,7 +366,7 @@ private crcEncap(physicalgraph.zwave.Command cmd) {
 private encap(physicalgraph.zwave.Command cmd) {
 	if (zwaveInfo.zw.contains("s")) {
 		secEncap(cmd)
-	} else if (zwaveInfo.cc.contains("56")){
+	} else if (zwaveInfo?.cc?.contains("56")){
 		crcEncap(cmd)
 	} else {
 		logging("${device.displayName} - no encapsulation supported for command: $cmd","info")

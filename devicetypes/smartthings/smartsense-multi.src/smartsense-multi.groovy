@@ -20,8 +20,9 @@ metadata {
 		capability "Temperature Measurement"
 		capability "Sensor"
 		capability "Battery"
+		capability "Health Check"
 
-		fingerprint profileId: "FC01", deviceId: "0139"
+		fingerprint profileId: "FC01", deviceId: "0139", deviceJoinName: "Multipurpose Sensor"
 	}
 
 	simulator {
@@ -43,7 +44,7 @@ metadata {
 	}
 
 	preferences {
-		input "tempOffset", "number", title: "Temperature offset", description: "Select how many degrees to adjust the temperature.", range: "*..*", displayDuringSetup: false
+		input "tempOffset", "number", title: "Temperature offset", description: "Select how many degrees to adjust the temperature.", range: "-100..100", displayDuringSetup: false
 	}
 
 	tiles(scale: 2) {
@@ -78,6 +79,10 @@ metadata {
 		main(["contact", "acceleration", "temperature"])
 		details(["contact", "acceleration", "temperature", "battery"])
 	}
+}
+
+def updated() {
+	sendEvent(name: "checkInterval", value: 60 * 12, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
 }
 
 def parse(String description) {
@@ -314,9 +319,7 @@ private Map getTempResult(part, description) {
 	def temperatureScale = getTemperatureScale()
 	def value = zigbee.parseSmartThingsTemperatureValue(part, "temp: ", temperatureScale)
 	if (tempOffset) {
-		def offset = tempOffset as int
-		def v = value as int
-		value = v + offset
+		value = new BigDecimal((value as float) + (tempOffset as float)).setScale(1, BigDecimal.ROUND_HALF_UP)
 	}
 	def linkText = getLinkText(device)
 	def descriptionText = "$linkText was $value°$temperatureScale"

@@ -1,22 +1,22 @@
 /**
- *  Device Type Definition File
+ *	Device Type Definition File
  *
- *  Device Type:		Fibaro RGBW Controller
- *  File Name:			fibaro-rgbw-controller.groovy
+ *	Device Type:		Fibaro RGBW Controller
+ *	File Name:			fibaro-rgbw-controller.groovy
  *	Initial Release:	2015-01-04
  *	Author:				Todd Wackford
- *  Email:				todd@wackford.net
+ *	Email:				todd@wackford.net
  *
- *  Copyright 2015 SmartThings
+ *	Copyright 2015 SmartThings
  *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License. You may obtain a copy of the License at:
+ *	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *	in compliance with the License. You may obtain a copy of the License at:
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *			http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
- *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
- *  for the specific language governing permissions and limitations under the License.
+ *	Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *	on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *	for the specific language governing permissions and limitations under the License.
  *
  */
 
@@ -57,11 +57,11 @@
 
 		attribute "whiteLevel", "string"
 
-		fingerprint deviceId: "0x1101", inClusters: "0x27,0x72,0x86,0x26,0x60,0x70,0x32,0x31,0x85,0x33"
+		fingerprint deviceId: "0x1101", inClusters: "0x27,0x72,0x86,0x26,0x60,0x70,0x32,0x31,0x85,0x33", deviceJoinName: "Fibaro Light"
 	}
 
 	simulator {
-		status "on":  "command: 2003, payload: FF"
+		status "on":	"command: 2003, payload: FF"
 		status "off": "command: 2003, payload: 00"
 		status "09%": "command: 2003, payload: 09"
 		status "10%": "command: 2003, payload: 0A"
@@ -175,13 +175,13 @@
 			state "saturation", action:"color control.setSaturation"
 		}
 		valueTile("saturation", "device.saturation", inactiveLabel: false, decoration: "flat") {
-			state "saturation", label: 'Sat ${currentValue}    '
+			state "saturation", label: 'Sat ${currentValue}		 '
 		}
 		controlTile("hueSliderControl", "device.hue", "slider", height: 1, width: 2, inactiveLabel: false) {
 			state "hue", action:"color control.setHue"
 		}
 		valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
-			state "hue", label: 'Hue ${currentValue}   '
+			state "hue", label: 'Hue ${currentValue}	 '
 		}
 
 		main(["switch"])
@@ -240,19 +240,21 @@ def setColor(value) {
 		toggleTiles("off")
 
 	if (( value.size() == 2) && (value.hue != null) && (value.saturation != null)) { //assuming we're being called from outside of device (App)
-		def rgb = colorUtil.hslToRgb(value.hue, value.saturation, 0.5)
-		value.hex = colorUtil.rgbToHex(rgb)
+		def rgb = colorUtil.hslToRgb(value.hue / 100, value.saturation / 100, 0.5)
+		rgb = rgb.collect{Math.round(it) as int}
+		value.hex = colorUtil.rgbToHex(*rgb)
 		value.rh = hex(rgb[0])
 		value.gh = hex(rgb[1])
 		value.bh = hex(rgb[2])
 	}
 
 	if ((value.size() == 3) && (value.hue != null) && (value.saturation != null) && (value.level)) { //user passed in a level value too from outside (App)
-		def rgb = colorUtil.hslToRgb(value.hue, value.saturation, 0.5)
-		value.hex = colorUtil.rgbToHex(rgb)
-		value.rh = hex(rgb[0] * value.level/100)
-		value.gh = hex(rgb[1] * value.level/100)
-		value.bh = hex(rgb[2] * value.level/100)
+		def rgb = colorUtil.hslToRgb(value.hue / 100, value.saturation / 100, level.level / 100)
+		rgb = rgb.collect{Math.round(it) as int}
+		value.hex = colorUtil.rgbToHex(*rgb)
+		value.rh = hex(rgb[0])
+		value.gh = hex(rgb[1])
+		value.bh = hex(rgb[2])
 	}
 
 	if (( value.size() == 1) && (value.hex)) { //being called from outside of device (App) with only hex
@@ -397,7 +399,7 @@ def parse(String description) {
 		isStateChange: false,
 		displayed: false,
 		descriptionText: description,
-		value:  description
+		value:	description
 	]
 	def result
 	def cmd = zwave.parse(description, [0x20: 1, 0x26: 1, 0x70: 2, 0x72: 2, 0x60: 3, 0x33: 2, 0x32: 3, 0x31:2, 0x30: 2, 0x86: 1, 0x7A: 1])
@@ -427,23 +429,23 @@ def getDeviceData() {
 
 def createEvent(physicalgraph.zwave.commands.manufacturerspecificv2.ManufacturerSpecificReport cmd, Map item1) {
 	log.debug "manufacturerName: ${cmd.manufacturerName}"
-	log.debug "manufacturerId:   ${cmd.manufacturerId}"
-	log.debug "productId:        ${cmd.productId}"
-	log.debug "productTypeId:    ${cmd.productTypeId}"
+	log.debug "manufacturerId:	 ${cmd.manufacturerId}"
+	log.debug "productId:				 ${cmd.productId}"
+	log.debug "productTypeId:		 ${cmd.productTypeId}"
 }
 
 def createEvent(physicalgraph.zwave.commands.versionv1.VersionReport cmd, Map item1) {
 	updateDataValue("applicationVersion", "${cmd.applicationVersion}")
-	log.debug "applicationVersion:      ${cmd.applicationVersion}"
-	log.debug "applicationSubVersion:   ${cmd.applicationSubVersion}"
-	log.debug "zWaveLibraryType:        ${cmd.zWaveLibraryType}"
-	log.debug "zWaveProtocolVersion:    ${cmd.zWaveProtocolVersion}"
+	log.debug "applicationVersion:			${cmd.applicationVersion}"
+	log.debug "applicationSubVersion:		${cmd.applicationSubVersion}"
+	log.debug "zWaveLibraryType:				${cmd.zWaveLibraryType}"
+	log.debug "zWaveProtocolVersion:		${cmd.zWaveProtocolVersion}"
 	log.debug "zWaveProtocolSubVersion: ${cmd.zWaveProtocolSubVersion}"
 }
 
 def createEvent(physicalgraph.zwave.commands.firmwareupdatemdv1.FirmwareMdReport cmd, Map item1) {
-	log.debug "checksum:       ${cmd.checksum}"
-	log.debug "firmwareId:     ${cmd.firmwareId}"
+	log.debug "checksum:			 ${cmd.checksum}"
+	log.debug "firmwareId:		 ${cmd.firmwareId}"
 	log.debug "manufacturerId: ${cmd.manufacturerId}"
 }
 
@@ -453,6 +455,14 @@ def zwaveEvent(physicalgraph.zwave.commands.colorcontrolv1.CapabilityReport cmd,
 }
 
 def createEvent(physicalgraph.zwave.commands.multichannelv3.MultiChannelCmdEncap cmd, Map item1) {
+	if (cmd.commandClass == 0x6C && cmd.parameter.size >= 4) { // Supervision encapsulated Message
+		// Supervision header is 4 bytes long, two bytes dropped here are the latter two bytes of the supervision header
+		cmd.parameter = cmd.parameter.drop(2)
+		// Updated Command Class/Command now with the remaining bytes
+		cmd.commandClass = cmd.parameter[0]
+		cmd.command = cmd.parameter[1]
+		cmd.parameter = cmd.parameter.drop(2)
+	}
 	def encapsulatedCommand = cmd.encapsulatedCommand([0x26: 1, 0x30: 2, 0x32: 2, 0x33: 2]) // can specify command class versions here like in zwave.parse
 	//log.debug ("Command from endpoint ${cmd.sourceEndPoint}: ${encapsulatedCommand}")
 	if ((cmd.sourceEndPoint >= 1) && (cmd.sourceEndPoint <= 5)) { // we don't need color report
@@ -467,7 +477,7 @@ def createEvent(physicalgraph.zwave.commands.multichannelv3.MultiChannelCmdEncap
 def createEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd, Map item1) {
 	 def result = doCreateEvent(cmd, item1)
 	 for (int i = 0; i < result.size(); i++) {
-		  result[i].type = "physical"
+			result[i].type = "physical"
 	 }
 	 result
 }
@@ -475,7 +485,7 @@ def createEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd, Map item1)
 def createEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd, Map item1) {
 	 def result = doCreateEvent(cmd, item1)
 	 for (int i = 0; i < result.size(); i++) {
-		  result[i].type = "physical"
+			result[i].type = "physical"
 	 }
 	 result
 }
@@ -503,7 +513,7 @@ def createEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevel
 def createEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelSet cmd, Map item1) {
 	 def result = doCreateEvent(cmd, item1)
 	 for (int i = 0; i < result.size(); i++) {
-		  result[i].type = "physical"
+			result[i].type = "physical"
 	 }
 	 result
 }
@@ -513,7 +523,7 @@ def createEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevel
 	 result[0].descriptionText = "${item1.linkText} is ${item1.value}"
 	 result[0].handlerName = cmd.value ? "statusOn" : "statusOff"
 	 for (int i = 0; i < result.size(); i++) {
-		  result[i].type = "digital"
+			result[i].type = "digital"
 	 }
 	 result
 }
@@ -530,15 +540,15 @@ def doCreateEvent(physicalgraph.zwave.Command cmd, Map item1) {
 	 item1.displayed = item1.isStateChange
 
 	 if (cmd.value >= 5) {
-		  def item2 = new LinkedHashMap(item1)
-		  item2.name = "level"
-		  item2.value = (cmd.value == 99 ? 100 : cmd.value) as String
-		  item2.unit = "%"
-		  item2.descriptionText = "${item1.linkText} dimmed ${item2.value} %"
-		  item2.canBeCurrentState = true
-		  item2.isStateChange = isStateChange(device, item2.name, item2.value)
-		  item2.displayed = false
-		  result << item2
+			def item2 = new LinkedHashMap(item1)
+			item2.name = "level"
+			item2.value = (cmd.value == 99 ? 100 : cmd.value) as String
+			item2.unit = "%"
+			item2.descriptionText = "${item1.linkText} dimmed ${item2.value} %"
+			item2.canBeCurrentState = true
+			item2.isStateChange = isStateChange(device, item2.name, item2.value)
+			item2.displayed = false
+			result << item2
 	 }
 	 result
 }
@@ -555,7 +565,7 @@ def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport 
 	 [name: "indicatorStatus", value: value, displayed: false]
 }
 */
-def createEvent(physicalgraph.zwave.Command cmd,  Map map) {
+def createEvent(physicalgraph.zwave.Command cmd,	Map map) {
 	 // Handles any Z-Wave commands we aren't interested in
 	 log.debug "UNHANDLED COMMAND $cmd"
 }
@@ -564,7 +574,7 @@ def on() {
 	log.debug "on()"
 	sendEvent(name: "switch", value: "on")
 	delayBetween([zwave.basicV1.basicSet(value: 0xFF).format(),
-				  zwave.switchMultilevelV1.switchMultilevelGet().format()], 5000)
+					zwave.switchMultilevelV1.switchMultilevelGet().format()], 5000)
 }
 
 def off() {
@@ -601,7 +611,7 @@ def refresh() {
 def updateZwaveParam(params) {
 	if ( params ) {
 		def pNumber = params.paramNumber
-		def pSize	= params.size
+		def pSize = params.size
 		def pValue	= [params.value]
 		log.debug "Updating ${device.displayName} parameter number '${pNumber}' with value '${pValue}' with size of '${pSize}'"
 
@@ -641,21 +651,21 @@ def test() {
 def colorNameToRgb(color) {
 
 	final colors = [
-		[name:"Soft White",	r: 255, g: 241, b: 224	],
-		[name:"Daylight", 	r: 255, g: 255, b: 251	],
+		[name:"Soft White", r: 255, g: 241, b: 224	],
+		[name:"Daylight",		r: 255, g: 255, b: 251	],
 		[name:"Warm White", r: 255, g: 244, b: 229	],
 
-		[name:"Red", 		r: 255, g: 0,	b: 0	],
-		[name:"Green", 		r: 0, 	g: 255,	b: 0	],
-		[name:"Blue", 		r: 0, 	g: 0,	b: 255	],
+		[name:"Red",		r: 255, g: 0, b: 0	],
+		[name:"Green",		r: 0,		g: 255, b: 0	],
+		[name:"Blue",			r: 0,		g: 0, b: 255	],
 
-		[name:"Cyan", 		r: 0, 	g: 255,	b: 255	],
-		[name:"Magenta", 	r: 255, g: 0,	b: 33	],
-		[name:"Orange", 	r: 255, g: 102, b: 0	],
+		[name:"Cyan",			r: 0,		g: 255, b: 255	],
+		[name:"Magenta",	r: 255, g: 0, b: 33 ],
+		[name:"Orange",		r: 255, g: 102, b: 0	],
 
-		[name:"Purple", 	r: 170, g: 0,	b: 255	],
-		[name:"Yellow", 	r: 255, g: 255, b: 0	],
-		[name:"White", 		r: 255, g: 255, b: 255	]
+		[name:"Purple",		r: 170, g: 0, b: 255	],
+		[name:"Yellow",		r: 255, g: 255, b: 0	],
+		[name:"White",		r: 255, g: 255, b: 255	]
 	]
 
 	def colorData = [:]
@@ -771,13 +781,13 @@ def doColorButton(colorName) {
 
 	toggleTiles(colorName.toLowerCase().replaceAll("\\s",""))
 
-	if 		( colorName == "Fire Place" ) 	{ updateZwaveParam([paramNumber:72, value:6,  size:1]) }
-	else if ( colorName == "Storm" ) 		{ updateZwaveParam([paramNumber:72, value:7,  size:1]) }
-	else if ( colorName == "Deep Fade" ) 	{ updateZwaveParam([paramNumber:72, value:8,  size:1]) }
-	else if ( colorName == "Lite Fade" ) 	{ updateZwaveParam([paramNumber:72, value:9,  size:1]) }
-	else if ( colorName == "Police" ) 		{ updateZwaveParam([paramNumber:72, value:10, size:1]) }
-	else if ( colorName == "White" ) 		{ String.format("33050400${maxLevel}02${hex(0)}03${hex(0)}04${hex(0)}%02X", 100) }
-	else if ( colorName == "Daylight" ) 	{ String.format("33050400${maxLevel}02${maxLevel}03${maxLevel}04${maxLevel}%02X", 100) }
+	if		( colorName == "Fire Place" )		{ updateZwaveParam([paramNumber:72, value:6,	size:1]) }
+	else if ( colorName == "Storm" )		{ updateZwaveParam([paramNumber:72, value:7,	size:1]) }
+	else if ( colorName == "Deep Fade" )	{ updateZwaveParam([paramNumber:72, value:8,	size:1]) }
+	else if ( colorName == "Lite Fade" )	{ updateZwaveParam([paramNumber:72, value:9,	size:1]) }
+	else if ( colorName == "Police" )			{ updateZwaveParam([paramNumber:72, value:10, size:1]) }
+	else if ( colorName == "White" )		{ String.format("33050400${maxLevel}02${hex(0)}03${hex(0)}04${hex(0)}%02X", 100) }
+	else if ( colorName == "Daylight" )		{ String.format("33050400${maxLevel}02${maxLevel}03${maxLevel}04${maxLevel}%02X", 100) }
 	else {
 		def c = getColorData(colorName)
 		def newValue = ["hue": c.h, "saturation": c.s, "level": level, "red": c.r, "green": c.g, "blue": c.b, "hex": c.hex, "alpha": c.alpha]
@@ -813,24 +823,24 @@ def toggleTiles(color) {
 
 // rows of buttons
 def softwhite() { doColorButton("Soft White") }
-def daylight()  { doColorButton("Daylight") }
+def daylight()	{ doColorButton("Daylight") }
 def warmwhite() { doColorButton("Warm White") }
 
-def red() 		{ doColorButton("Red") }
-def green() 	{ doColorButton("Green") }
-def blue() 		{ doColorButton("Blue") }
+def red()			{ doColorButton("Red") }
+def green()		{ doColorButton("Green") }
+def blue()		{ doColorButton("Blue") }
 
-def cyan() 		{ doColorButton("Cyan") }
-def magenta()	{ doColorButton("Magenta") }
-def orange() 	{ doColorButton("Orange") }
+def cyan()		{ doColorButton("Cyan") }
+def magenta() { doColorButton("Magenta") }
+def orange()	{ doColorButton("Orange") }
 
 def purple()	{ doColorButton("Purple") }
-def yellow() 	{ doColorButton("Yellow") }
-def white() 	{ doColorButton("White") }
+def yellow()	{ doColorButton("Yellow") }
+def white()		{ doColorButton("White") }
 
 def fireplace() { doColorButton("Fire Place") }
-def storm() 	{ doColorButton("Storm") }
-def deepfade() 	{ doColorButton("Deep Fade") }
+def storm()		{ doColorButton("Storm") }
+def deepfade()	{ doColorButton("Deep Fade") }
 
-def litefade() 	{ doColorButton("Lite Fade") }
-def police() 	{ doColorButton("Police") }
+def litefade()	{ doColorButton("Lite Fade") }
+def police()	{ doColorButton("Police") }

@@ -12,8 +12,8 @@ metadata {
 
 		command "reset"
 		
-		fingerprint mfr: "010F", prod: "0602", model: "1001", deviceJoinName: "Fibaro Wall Plug EU ZW5"
-		fingerprint mfr: "010F", prod: "0602"
+		fingerprint mfr: "010F", prod: "0602", model: "1001", deviceJoinName: "Fibaro Outlet" //Fibaro Wall Plug EU ZW5
+		fingerprint mfr: "010F", prod: "0602", deviceJoinName: "Fibaro Outlet"
 
 	}
 
@@ -52,11 +52,12 @@ metadata {
 					type: "paragraph",
 					element: "paragraph"
 			)
-
+			def defVal = it.def as Integer
+			def descrDefVal = it.options ? it.options.get(defVal) : defVal
 			input (
 					name: it.key,
 					title: null,
-					description: "Default: $it.def" ,
+					description: "$descrDefVal",
 					type: it.type,
 					options: it.options,
 					range: (it.min != null && it.max != null) ? "${it.min}..${it.max}" : null,
@@ -310,7 +311,7 @@ private crcEncap(physicalgraph.zwave.Command cmd) {
 private encap(physicalgraph.zwave.Command cmd) {
 	if (zwaveInfo.zw.contains("s")) {
 		secEncap(cmd)
-	} else if (zwaveInfo.cc.contains("56")){
+	} else if (zwaveInfo?.cc?.contains("56")){
 		crcEncap(cmd)
 	} else {
 		logging("${device.displayName} - no encapsulation supported for command: $cmd","info")

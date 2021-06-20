@@ -19,8 +19,9 @@ metadata {
 		capability "Battery"
 		capability "Health Check"
 
-		fingerprint mfr:"0138", prod:"0001", model:"0002", deviceJoinName: "First Alert Smoke Detector and Carbon Monoxide Alarm (ZCOMBO)"
-		fingerprint mfr:"0138", prod:"0001", model:"0003", deviceJoinName: "First Alert Smoke Detector and Carbon Monoxide Alarm (ZCOMBO)"
+		fingerprint mfr:"0138", prod:"0001", model:"0002", deviceJoinName: "First Alert Smoke Detector" //First Alert Smoke Detector and Carbon Monoxide Alarm (ZCOMBO)
+		fingerprint mfr:"0138", prod:"0001", model:"0003", deviceJoinName: "First Alert Smoke Detector" //First Alert Smoke Detector and Carbon Monoxide Alarm (ZCOMBO)
+		fingerprint mfr:"0154", prod:"0004", model:"0003", deviceJoinName: "POPP Carbon Monoxide Sensor", mnmn: "SmartThings", vid: "generic-carbon-monoxide-3" //POPP Co Detector
 	}
 
 	simulator {
@@ -190,13 +191,16 @@ def zwaveEvent(physicalgraph.zwave.commands.sensoralarmv1.SensorAlarmReport cmd,
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd, results) {
 	results << createEvent(descriptionText: "$device.displayName woke up", isStateChange: false)
 	if (!state.lastbatt || (now() - state.lastbatt) >= 56*60*60*1000) {
-		results << response([
+		results << response(delayBetween([
+				zwave.notificationV3.notificationGet(notificationType: 0x01).format(),
 				zwave.batteryV1.batteryGet().format(),
-				"delay 2000",
 				zwave.wakeUpV1.wakeUpNoMoreInformation().format()
-			])
+		], 2000))
 	} else {
-		results << response(zwave.wakeUpV1.wakeUpNoMoreInformation())
+		results << response(delayBetween([
+				zwave.notificationV3.notificationGet(notificationType: 0x01).format(),
+				zwave.wakeUpV1.wakeUpNoMoreInformation().format()
+		], 2000))
 	}
 }
 

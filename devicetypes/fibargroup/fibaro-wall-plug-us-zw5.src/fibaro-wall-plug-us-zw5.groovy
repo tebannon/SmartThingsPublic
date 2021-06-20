@@ -12,8 +12,8 @@ metadata {
 
 		command "reset"
 
-		fingerprint mfr: "010F", prod: "1401", model: "2000"
-		fingerprint mfr: "010F", prod: "1401"
+		fingerprint mfr: "010F", prod: "1401", model: "2000", deviceJoinName: "Fibaro Outlet"
+		fingerprint mfr: "010F", prod: "1401", deviceJoinName: "Fibaro Outlet"
 
 	}
 
@@ -395,6 +395,14 @@ def zwaveEvent(physicalgraph.zwave.commands.applicationstatusv1.ApplicationBusy 
 
 
 def zwaveEvent(physicalgraph.zwave.commands.multichannelv3.MultiChannelCmdEncap cmd) {
+	if (cmd.commandClass == 0x6C && cmd.parameter.size >= 4) { // Supervision encapsulated Message
+		// Supervision header is 4 bytes long, two bytes dropped here are the latter two bytes of the supervision header
+		cmd.parameter = cmd.parameter.drop(2)
+		// Updated Command Class/Command now with the remaining bytes
+		cmd.commandClass = cmd.parameter[0]
+		cmd.command = cmd.parameter[1]
+		cmd.parameter = cmd.parameter.drop(2)
+	}
 	def encapsulatedCommand = cmd.encapsulatedCommand(cmdVersions())
 	if (encapsulatedCommand) {
 		logging("${device.displayName} - Parsed MultiChannelCmdEncap ${encapsulatedCommand}")
@@ -447,7 +455,7 @@ private encap(Map encapMap) {
 private encap(physicalgraph.zwave.Command cmd) {
 	if (zwaveInfo.zw.contains("s")) {
 		secEncap(cmd)
-	} else if (zwaveInfo.cc.contains("56")){
+	} else if (zwaveInfo?.cc?.contains("56")){
 		crcEncap(cmd)
 	} else {
 		logging("${device.displayName} - no encapsulation supported for command: $cmd","info")
