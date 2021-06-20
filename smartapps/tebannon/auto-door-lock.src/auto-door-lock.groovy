@@ -20,7 +20,7 @@ definition(
     description: "Automatically locks door after a specified elapsed time with optional door cotact sensor and motion contact sensor.",
     category: "Safety & Security",
     singleInstance : false,
-    pausible: true,
+    pausable: true,
     oauth: true,
 	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Solution/doors.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Solution/doors@2x.png"
